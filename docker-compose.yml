@@ -1,0 +1,137 @@
+version: '3.7'
+
+services:
+  # ------------------------------
+  # Zookeeper
+  # ------------------------------
+  zookeeper:
+    image: zookeeper:3.9.0
+    hostname: zookeeper
+    container_name: zookeeper-json
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks: 
+      - json
+
+  # ------------------------------
+  # MinIO - S3-compatible object store
+  # ------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"   # S3 API endpoint
+      - "9001:9001"   # MinIO console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./minio-data:/data
+    networks:
+      - json
+
+  # ------------------------------
+  # Pinot Controller
+  # ------------------------------
+  pinot-controller:
+    image: apachepinot/pinot:1.2.0
+    container_name: "pinot-controller-json"
+    command: "StartController -zkAddress zookeeper-json:2181"
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    environment:
+      JAVA_OPTS: >
+        -Dpinot.fs.s3.access.key=minioadmin
+        -Dpinot.fs.s3.secret.key=minioadmin
+        -Dpinot.fs.s3.region=us-east-1
+        -Dpinot.fs.s3.endpoint=http://minio:9000
+        -Dpinot.fs.s3.disableAcl=true
+    restart: unless-stopped
+    ports:
+      - "9002:9000" # avoid port clash with MinIO
+    depends_on:
+      - zookeeper
+      - minio
+    networks: 
+      - json
+
+  # ------------------------------
+  #  Pinot Broker
+  # ------------------------------
+  pinot-broker:
+    image: apachepinot/pinot:1.2.0
+    container_name: "pinot-broker-json"
+    command: "StartBroker -zkAddress zookeeper-json:2181"
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    environment:
+      JAVA_OPTS: >
+        -Dpinot.fs.s3.access.key=minioadmin
+        -Dpinot.fs.s3.secret.key=minioadmin
+        -Dpinot.fs.s3.region=us-east-1
+        -Dpinot.fs.s3.endpoint=http://minio:9000
+        -Dpinot.fs.s3.disableAcl=true
+    restart: unless-stopped
+    ports:
+      - "8099:8099"
+    depends_on:
+      - pinot-controller
+    networks: 
+      - json
+
+  # ------------------------------
+  #  Pinot Server
+  # ------------------------------
+  pinot-server:
+    image: apachepinot/pinot:1.2.0
+    container_name: "pinot-server-json"
+    command: "StartServer -zkAddress zookeeper-json:2181"
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    environment:
+      JAVA_OPTS: >
+        -Dpinot.fs.s3.access.key=minioadmin
+        -Dpinot.fs.s3.secret.key=minioadmin
+        -Dpinot.fs.s3.region=us-east-1
+        -Dpinot.fs.s3.endpoint=http://minio:9000
+        -Dpinot.fs.s3.disableAcl=true
+    restart: unless-stopped
+    depends_on:
+      - pinot-broker
+    networks: 
+      - json
+
+  # ------------------------------
+  #  Pinot Minion
+  # ------------------------------
+  pinot-minion:
+    image: apachepinot/pinot:1.2.0
+    container_name: "pinot-minion"
+    command: "StartMinion -zkAddress zookeeper-json:2181"
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    environment:
+      JAVA_OPTS: >
+        -Dpinot.fs.s3.access.key=minioadmin
+        -Dpinot.fs.s3.secret.key=minioadmin
+        -Dpinot.fs.s3.region=us-east-1
+        -Dpinot.fs.s3.endpoint=http://minio:9000
+        -Dpinot.fs.s3.disableAcl=true
+    restart: unless-stopped
+    depends_on:
+      - pinot-server
+      - minio
+    networks: 
+      - json
+
+networks:
+  json:
+    name: json

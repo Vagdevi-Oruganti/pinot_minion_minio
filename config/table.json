@@ -1,0 +1,45 @@
+{
+  "tableName": "movies",
+  "tableType": "OFFLINE",
+  "segmentsConfig": {
+    "timeColumnName": "releaseDate",
+    "timeType": "MILLISECONDS",
+    "schemaName": "movies",
+    "replication": "1",
+    "segmentAssignmentStrategy": "BalanceNumSegmentAssignmentStrategy",
+    "segmentPushType": "APPEND",
+    "segmentPushFrequency": "DAILY",
+    "maxNumRecordsPerSegment": 10000
+  },
+  "tenants": {},
+  "tableIndexConfig": {
+    "loadMode": "MMAP",
+    "invertedIndexColumns": []
+  },
+  "ingestionConfig": {
+    "transformConfigs": [],
+    "batchIngestionConfig": {
+      "segmentIngestionType": "APPEND",
+      "segmentIngestionFrequency": "DAILY",
+      "batchConfigMaps": [
+       
+{
+          "input.fs.className": "org.apache.pinot.plugin.filesystem.S3PinotFS",
+          "input.fs.prop.endpoint": "http://minio:9000",
+          "input.fs.prop.accessKey": "minioadmin",
+          "input.fs.prop.secretKey": "minioadmin",
+          "input.fs.prop.region": "us-east-1",
+          "inputDirURI": "s3://pinot-input-data",
+          "includeFileNamePattern": "glob:**/*.json",
+          "inputFormat": "json"
+        }
+      ]
+    }
+  },
+  "metadata": {},
+  "task": {
+    "taskTypeConfigsMap": {
+      "SegmentGenerationAndPushTask": {}
+    }
+  }
+}
