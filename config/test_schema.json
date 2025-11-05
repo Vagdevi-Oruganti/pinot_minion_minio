@@ -1,0 +1,29 @@
+{
+    "schemaName": "test",
+    "dimensionFieldSpecs": [
+      {
+        "name": "title",
+        "dataType": "STRING"
+      },
+      {
+        "name": "budget",
+        "dataType": "STRING"
+      },
+      {
+        "name": "boxOffice",
+        "dataType": "INT"
+      },
+      {
+        "name": "genre",
+        "dataType": "STRING"
+      }
+    ],
+    "dateTimeFieldSpecs": [
+      {
+        "name": "releaseDate",
+        "dataType": "TIMESTAMP",
+        "format": "1:MILLISECONDS:EPOCH",
+        "granularity": "1:MILLISECONDS"
+      }
+    ]
+  }
