@@ -16,3 +16,5 @@ docker run \
 
 
 curl -X POST "http://localhost:9000/tasks/schedule?taskType=SegmentGenerationAndPushTask&tableName=movies_OFFLINE"   -H "accept: application/json"
+
+apart from commands (docker / curl )swagger ui can also be used for adding schema, table and minion task scheduling

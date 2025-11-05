@@ -8,8 +8,7 @@
     "replication": "1",
     "segmentAssignmentStrategy": "BalanceNumSegmentAssignmentStrategy",
     "segmentPushType": "APPEND",
-    "segmentPushFrequency": "DAILY",
-    "maxNumRecordsPerSegment": 10000
+    "segmentPushFrequency": "DAILY"
   },
   "tenants": {},
   "tableIndexConfig": {
